@@ -1,0 +1,13 @@
+# Core dependencies for robot_visualization
+numpy
+pyvista
+scipy
+
+# urdfpy dependencies (included as submodule)
+lxml
+networkx>=3.0
+pillow
+pycollada==0.6
+pyrender>=0.1.20
+six
+trimesh

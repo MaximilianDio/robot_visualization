@@ -8,9 +8,9 @@ trajectory plotting.
 
 __version__ = '0.1.0'
 
-# Import main classes from submodules
-from robot_visualization.robot import Robot
-from robot_visualization.primitives import AxesVisualizer, ArrowVisualizer
+# Import main classes from submodules using relative imports
+from .robot import Robot
+from .primitives import AxesVisualizer, ArrowVisualizer
 
 # Re-export urdfpy classes for convenience
 try:

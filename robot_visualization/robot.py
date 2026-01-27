@@ -72,7 +72,7 @@ class Robot:
     
     def update(self, q, id = 0):
         if not self.mesh_actors:
-            self.set_robot_mesh()
+            self.set_robot_mesh(id=id)
 
         fk = self.robot.visual_trimesh_fk(q)
         for tm in fk:

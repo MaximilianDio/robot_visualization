@@ -11,11 +11,12 @@ __version__ = '0.1.0'
 # Import main classes from submodules using relative imports
 from .robot import Robot
 from .primitives import AxesVisualizer, ArrowVisualizer
+from . import video_utils
 
 # Re-export urdfpy classes for convenience
 try:
     from urdfpy import URDF
-    __all__ = ['Robot', 'AxesVisualizer', 'ArrowVisualizer', 'URDF']
+    __all__ = ['Robot', 'AxesVisualizer', 'ArrowVisualizer', 'video_utils', 'URDF']
 except ImportError:
     # urdfpy not available, only export our classes
-    __all__ = ['Robot', 'AxesVisualizer', 'ArrowVisualizer']
+    __all__ = ['Robot', 'AxesVisualizer', 'ArrowVisualizer', 'video_utils']

@@ -96,7 +96,7 @@ class Robot:
             pv_mesh.transform(transform, inplace=True)
             # No need to update actor, as mesh is updated in-place
 
-    def plot_ee(self, q, Tgp = np.eye(4), ee_link_name="CS_6", color="red", **kwargs):
+    def plot_ee(self, q, Tgp = np.eye(4), ee_link_name="CS_6", color="red", plotter=None, **kwargs):
         """
         Plot the end-effector position for a given joint configuration.
 
@@ -105,6 +105,9 @@ class Robot:
             Tgp (np.ndarray): Transformation from end-effector to gripper pose (default is identity).
             ee_link_name (str): Name of the end-effector link.
         """
+        if plotter is None:
+            plotter = self.plotter
+
         # Compute end-effector pose
         ee_pose = self.fk(q, ee_link_name) @ Tgp
         # Extract end-effector position
@@ -116,10 +119,10 @@ class Robot:
 
         if type == "sphere":
             sphere = pv.Sphere(radius=size / 2, center=ee_pos)
-            self.plotter.add_mesh(sphere, color=color)
+            plotter.add_mesh(sphere, color=color)
         elif type == "cube":
             cube = pv.Cube(center=ee_pos, x_length=size, y_length=size, z_length=size)
-            self.plotter.add_mesh(cube, color=color)
+            plotter.add_mesh(cube, color=color)
         elif type == "cross":
             line1 = pv.Line(
                 ee_pos - np.array([size / 2, 0, 0]), ee_pos + np.array([size / 2, 0, 0])
@@ -130,11 +133,11 @@ class Robot:
             line3 = pv.Line(
                 ee_pos - np.array([0, 0, size / 2]), ee_pos + np.array([0, 0, size / 2])
             )
-            self.plotter.add_mesh(line1, color=color, line_width=4)
-            self.plotter.add_mesh(line2, color=color, line_width=4)
-            self.plotter.add_mesh(line3, color=color, line_width=4)
+            plotter.add_mesh(line1, color=color, line_width=4)
+            plotter.add_mesh(line2, color=color, line_width=4)
+            plotter.add_mesh(line3, color=color, line_width=4)
     
-    def plot_ee_frame(self, q, Tgp = np.eye(4), ee_link_name="CS_6"):
+    def plot_ee_frame(self, q, Tgp = np.eye(4), ee_link_name="CS_6", plotter=None):
         """
         Plot the end-effector position for a given joint configuration.
 
@@ -142,6 +145,9 @@ class Robot:
             q (np.ndarray): Joint configuration of the robot.
             ee_link_name (str): Name of the end-effector link.
         """
+        if plotter is None:
+            plotter = self.plotter
+
         pose = self.fk(q, ee_link_name) @ Tgp
 
         # Plot a low-res red sphere at the end-effector position
@@ -149,18 +155,22 @@ class Robot:
 
         # Plot a coordinate frame at the end-effector
         axes = pv.Arrow(start=ee_pos, direction=pose[:3, 0], scale=0.05)
-        self.plotter.add_mesh(axes, color='r')
+        plotter.add_mesh(axes, color='r')
         axes = pv.Arrow(start=ee_pos, direction=pose[:3, 1], scale=0.05)
-        self.plotter.add_mesh(axes, color='g')
+        plotter.add_mesh(axes, color='g')
         axes = pv.Arrow(start=ee_pos, direction=pose[:3, 2], scale=0.05)
-        self.plotter.add_mesh(axes, color='b')
+        plotter.add_mesh(axes, color='b')
 
-    def plot_ee_path(self, path, Tgp = np.eye(4), ee_link_name="CS_6", color=None, opacity=1.0, line_width=4):
+    def plot_ee_path(self, path, Tgp = np.eye(4), ee_link_name="CS_6", color=None, opacity=None, line_width=4, plotter=None):
         """
         Plot the end-effector path for a given sequence of joint configurations.
         """
+        if plotter is None:
+            plotter = self.plotter
         if color is None:
             color = self.mesh_color
+        if opacity is None:
+            opacity = self.mesh_opacity
         
         pos = []
         for q in path:
@@ -168,6 +178,6 @@ class Robot:
             pos.append(pose[:3, 3])
         
         mesh = pv.lines_from_points(np.array(pos), close=False)         
-        actor = self.plotter.add_mesh(mesh, color=color, line_width=line_width, opacity=self.mesh_opacity)
+        actor = plotter.add_mesh(mesh, color=color, line_width=line_width, opacity=opacity)
 
         return actor

@@ -37,8 +37,12 @@ class Robot:
             self.plotter = plotter
 
         self.mesh_actors = {}
+        self.id_list = []
 
     def set_robot_mesh(self, id = 0, color= None, opacity=None):
+        
+        self.id_list.append(id)
+        
         if color is None:
             color = self.mesh_color
         if opacity is None:
@@ -72,6 +76,9 @@ class Robot:
     
     def update(self, q, id = 0):
         if not self.mesh_actors:
+            self.set_robot_mesh(id=id)
+        
+        if id not in self.id_list:
             self.set_robot_mesh(id=id)
 
         fk = self.robot.visual_trimesh_fk(q)

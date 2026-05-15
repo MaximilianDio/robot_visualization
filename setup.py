@@ -14,7 +14,7 @@ setup(
                                     'urdfpy', 'urdfpy.*']),
     python_requires='>=3.7',
     install_requires=[
-        'numpy',
+        'numpy==1.26.4',
         'pyvista',
         'scipy',
         # urdfpy dependencies (since we're including it as a submodule)

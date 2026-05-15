@@ -38,17 +38,35 @@ class Robot:
 
         self.mesh_actors = {}
         self.id_list = []
+        self.mesh_type = 'visual'  # 'visual' or 'collision'
+
+    def _get_fk(self, q=None):
+        if self.mesh_type == 'collision':
+            fk = self.robot.collision_trimesh_fk(q)
+            if not fk:
+                fk = self.robot.visual_trimesh_fk(q)
+        else:
+            fk = self.robot.visual_trimesh_fk(q)
+        return fk
+
+    def toggle_mesh_type(self):
+        """Toggle between visual and collision meshes; caller must call update() afterwards."""
+        for (tm, id_), (pv_mesh, actor) in list(self.mesh_actors.items()):
+            self.plotter.remove_actor(actor)
+        self.mesh_actors.clear()
+        self.id_list.clear()
+        self.mesh_type = 'collision' if self.mesh_type == 'visual' else 'visual'
 
     def set_robot_mesh(self, id = 0, color= None, opacity=None):
-        
+
         self.id_list.append(id)
-        
+
         if color is None:
             color = self.mesh_color
         if opacity is None:
-            opacity = self.mesh_opacity 
-            
-        fk = self.robot.visual_trimesh_fk()
+            opacity = self.mesh_opacity
+
+        fk = self._get_fk()
 
         for tm in fk:
             pose = fk[tm]
@@ -81,7 +99,7 @@ class Robot:
         if id not in self.id_list:
             self.set_robot_mesh(id=id)
 
-        fk = self.robot.visual_trimesh_fk(q)
+        fk = self._get_fk(q)
         for tm in fk:
             pose = fk[tm]
             # transform to base frame

@@ -12,7 +12,7 @@ from scipy.spatial.transform import Rotation
 class AxesVisualizer:
     """A class to visualize coordinate axes in PyVista."""
     
-    def __init__(self, plotter, origin=None, scale=1.0):
+    def __init__(self, plotter, origin=None, scale=1.0, color= None, line_width=2):
         """
         Initialize the axes visualizer.
         
@@ -25,23 +25,31 @@ class AxesVisualizer:
         self.origin = np.array(origin if origin is not None else [0, 0, 0])
         self.scale = scale
         self.actors = []
+        if color is not None and isinstance(color, str):
+            self.color = [color, color, color]
+        self.color = color if color is not None else ['red', 'green', 'blue']
+        self.line_width = line_width
         self._create_axes()
     
     def _create_axes(self):
         """Create the initial axes actors."""
+        self.meshes = []
         self.actors = []
-        
+
         # X axis (red)
         x_axis = pv.Line(self.origin, self.origin + np.array([self.scale, 0, 0]))
-        self.actors.append(self.plotter.add_mesh(x_axis, color='red', line_width=2))
-        
+        self.meshes.append(x_axis)
+        self.actors.append(self.plotter.add_mesh(x_axis, color=self.color[0], line_width=self.line_width))
+
         # Y axis (green)
         y_axis = pv.Line(self.origin, self.origin + np.array([0, self.scale, 0]))
-        self.actors.append(self.plotter.add_mesh(y_axis, color='green', line_width=2))
-        
+        self.meshes.append(y_axis)
+        self.actors.append(self.plotter.add_mesh(y_axis, color=self.color[1], line_width=self.line_width))
+
         # Z axis (blue)
         z_axis = pv.Line(self.origin, self.origin + np.array([0, 0, self.scale]))
-        self.actors.append(self.plotter.add_mesh(z_axis, color='blue', line_width=2))
+        self.meshes.append(z_axis)
+        self.actors.append(self.plotter.add_mesh(z_axis, color=self.color[2], line_width=self.line_width))
     
     def update(self, position=None, rotation=None):
         """
@@ -69,9 +77,9 @@ class AxesVisualizer:
                 rotation = Rotation.from_matrix(rotation)
             axes_directions = [rotation.apply(direction) for direction in axes_directions]
         
-        # Update axis endpoints
+        # Update axis endpoints directly on the stored mesh objects
         for direction, idx in zip(axes_directions, range(3)):
-            self.actors[idx].mapper.dataset.points = np.array([
+            self.meshes[idx].points = np.array([
                 self.origin,
                 self.origin + direction
             ])

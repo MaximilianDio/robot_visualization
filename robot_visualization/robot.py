@@ -92,12 +92,12 @@ class Robot:
         
         return pose
     
-    def update(self, q, id = 0):
+    def update(self, q, id = 0, color=None, opacity=None):
         if not self.mesh_actors:
-            self.set_robot_mesh(id=id)
+            self.set_robot_mesh(id=id, color=color, opacity=opacity)
         
         if id not in self.id_list:
-            self.set_robot_mesh(id=id)
+            self.set_robot_mesh(id=id, color=color, opacity=opacity)
 
         fk = self._get_fk(q)
         for tm in fk:
@@ -106,6 +106,12 @@ class Robot:
             pose = self.T0 @ pose
             
             pv_mesh, actor = self.mesh_actors[(tm,id)]
+
+            # set color and opacity
+            if color is not None:
+                actor.GetProperty().SetColor(color[0], color[1], color[2])
+            if opacity is not None:
+                actor.GetProperty().SetOpacity(opacity)
             # Reset mesh to original and apply new pose
             pv_mesh.points = pv.wrap(tm).points
             transform = np.eye(4)
@@ -155,9 +161,9 @@ class Robot:
             plotter.add_mesh(line2, color=color, line_width=4)
             plotter.add_mesh(line3, color=color, line_width=4)
     
-    def plot_ee_frame(self, q, Tgp = np.eye(4), ee_link_name="CS_6", plotter=None):
+    def plot_ee_frame(self, q, Tgp = np.eye(4), ee_link_name="CS_6", plotter=None, color = None, scale =0.1):
         """
-        Plot the end-effector position for a given joint configuration.
+        Plot the end-effector frame for a given joint configuration.
 
         Args:
             q (np.ndarray): Joint configuration of the robot.
@@ -168,18 +174,15 @@ class Robot:
 
         pose = self.fk(q, ee_link_name) @ Tgp
 
-        # Plot a low-res red sphere at the end-effector position
-        ee_pos = pose[:3, 3]
+        axes = pv.AxesAssembly(
+            user_matrix=pose,
+            scale=scale,
+            show_labels=False,
+            **({"x_color": color, "y_color": color, "z_color": color} if color is not None else {}),
+        )
+        plotter.add_actor(axes)
 
-        # Plot a coordinate frame at the end-effector
-        axes = pv.Arrow(start=ee_pos, direction=pose[:3, 0], scale=0.05)
-        plotter.add_mesh(axes, color='r')
-        axes = pv.Arrow(start=ee_pos, direction=pose[:3, 1], scale=0.05)
-        plotter.add_mesh(axes, color='g')
-        axes = pv.Arrow(start=ee_pos, direction=pose[:3, 2], scale=0.05)
-        plotter.add_mesh(axes, color='b')
-
-    def plot_ee_path(self, path, Tgp = np.eye(4), ee_link_name="CS_6", color=None, opacity=None, line_width=4, plotter=None):
+    def plot_ee_path(self, path, actor = None, Tgp = np.eye(4), ee_link_name="CS_6", color:str =None, opacity=None, line_width=4, plotter=None):
         """
         Plot the end-effector path for a given sequence of joint configurations.
         """
@@ -195,7 +198,10 @@ class Robot:
             pose = self.fk(q, ee_link_name) @ Tgp
             pos.append(pose[:3, 3])
         
-        mesh = pv.lines_from_points(np.array(pos), close=False)         
-        actor = plotter.add_mesh(mesh, color=color, line_width=line_width, opacity=opacity)
+        mesh = pv.lines_from_points(np.array(pos), close=False)   
+        if actor is None:       
+           actor = plotter.add_mesh(mesh, color=color, line_width=line_width, opacity=opacity)
+        else:
+            actor.mapper.SetInputData(mesh)
 
         return actor

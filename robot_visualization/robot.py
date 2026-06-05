@@ -23,6 +23,7 @@ class Robot:
         self.mesh_opacity = kwargs.get('opacity', 1.0)
         self.p0 = kwargs.get('p0', np.zeros(3))
         self.R0 = kwargs.get('R0', np.eye(3))
+        self.decimate = kwargs.get('decimate', None)
         
         self.T0 = np.eye(4)
         self.T0[:3, :3] = self.R0
@@ -75,6 +76,9 @@ class Robot:
             
             # Convert trimesh to pyvista mesh
             pv_mesh = pv.wrap(tm)
+            if self.decimate is not None:
+                pv_mesh = pv_mesh.decimate(self.decimate)
+            canonical_points = pv_mesh.points.copy()
             # Apply pose transformation
             transform = np.eye(4)
             transform[:3, :3] = pose[:3, :3]
@@ -82,7 +86,7 @@ class Robot:
             pv_mesh.transform(transform, inplace=True)
             # Add mesh to plotter
             actor = self.plotter.add_mesh(pv_mesh, color=color, opacity=opacity)
-            self.mesh_actors[(tm,id)] = (pv_mesh, actor)
+            self.mesh_actors[(tm,id)] = (pv_mesh, actor, canonical_points)
             
     def fk(self, q, ee_link_name="CS_6"):
         """ Generate forward kinemaics for given joint configuration."""
@@ -104,16 +108,16 @@ class Robot:
             pose = fk[tm]
             # transform to base frame
             pose = self.T0 @ pose
-            
-            pv_mesh, actor = self.mesh_actors[(tm,id)]
+
+            pv_mesh, actor, canonical_points = self.mesh_actors[(tm,id)]
 
             # set color and opacity
             if color is not None:
                 actor.GetProperty().SetColor(color[0], color[1], color[2])
             if opacity is not None:
                 actor.GetProperty().SetOpacity(opacity)
-            # Reset mesh to original and apply new pose
-            pv_mesh.points = pv.wrap(tm).points
+            # Reset mesh to canonical zero-pose and apply new pose
+            pv_mesh.points = canonical_points.copy()
             transform = np.eye(4)
             transform[:3, :3] = pose[:3, :3]
             transform[:3, 3] = pose[:3, 3]  

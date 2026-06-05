@@ -139,3 +139,36 @@ class ArrowVisualizer:
         
         arrow = pv.Arrow(start=self.origin, direction=self.direction,scale= self.scale * np.linalg.norm(self.direction))
         self.actor.mapper.dataset = arrow
+
+class BoxVisualizer:
+
+    def __init__(self, plotter, x_size = 0.1, y_size = 0.1, z_size = 0.1, color='white', opacity=1.0):
+        self.actors = {}
+        self.plotter = plotter
+        self.x_size = x_size
+        self.y_size = y_size
+        self.z_size = z_size
+        self.color = color
+        self.opacity = opacity
+
+    def set_mesh(self, id, color = None, opacity = None):
+        if id in self.actors:
+            self.plotter.remove_actor(self.actors[id])
+        
+        box = pv.Box(bounds=(-0.5*self.x_size, 0.5*self.x_size, -0.5*self.y_size, 0.5*self.y_size, -0.5*self.z_size, 0.5*self.z_size))
+        actor = self.plotter.add_mesh(box, 
+                                      color=color if color is not None else self.color, 
+                                      opacity=opacity if opacity is not None else self.opacity)
+        self.actors[id] = actor
+        return box.points.copy(), actor
+
+    def update(self, id, T, color=None, opacity=None):
+        if id not in self.actors:
+            self.set_mesh(id, color=color if color is not None else self.color, opacity=opacity if opacity is not None else self.opacity)
+        
+        actor = self.actors[id]
+        actor.user_matrix = T
+        if color is not None:
+            actor.GetProperty().SetColor(color[0], color[1], color[2])
+        if opacity is not None:
+            actor.GetProperty().SetOpacity(opacity)

@@ -1,73 +1,53 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "robot_visualization"
-version = "0.1.0"
-description = "A Python package for robot visualization using URDF files and PyVista"
+version = "0.2.0"
+description = "PyVista-based 3D visualization of URDF robots"
 readme = "README.md"
-requires-python = ">=3.7"
-license = {text = "MIT"}
-authors = [
-    {name = "Your Name", email = "your.email@example.com"}
-]
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Maximilian Dio", email = "maximilian.dio@fau.de" }]
 keywords = ["robotics", "visualization", "urdf", "pyvista", "3d"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Visualization",
-    "Topic :: Scientific/Engineering :: Robotics",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
 
 dependencies = [
-    "numpy",
-    "pyvista",
-    "scipy",
+    "numpy>=1.24",
+    "pyvista>=0.40",
+    "scipy>=1.13",
+    "opencv-python",
+    # urdfpy (vendored as the ./urdfpy submodule) dependencies
     "lxml",
     "networkx>=3.0",
     "pillow",
     "pycollada==0.6",
     "pyrender>=0.1.20",
     "six",
-    "trimesh",
+    "trimesh>=3.9",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-cov",
-    "flake8",
-    "black",
-    "isort",
-]
+dev = ["pytest", "pytest-cov", "flake8"]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/robot_visualization"
-Documentation = "https://github.com/yourusername/robot_visualization#readme"
-Repository = "https://github.com/yourusername/robot_visualization.git"
-"Bug Tracker" = "https://github.com/yourusername/robot_visualization/issues"
+Repository = "https://github.com/MaximilianDio/robot_visualization.git"
 
-[tool.setuptools.packages.find]
-include = ["robot_visualization*", "urdfpy*"]
+# This repository ships two import packages: robot_visualization itself and a
+# vendored fork of urdfpy (git submodule, see .gitmodules). Installing this
+# project therefore also installs urdfpy - no separate install required.
+[tool.setuptools]
+packages = ["robot_visualization", "urdfpy"]
 
-[tool.black]
-line-length = 100
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
-
-[tool.isort]
-profile = "black"
-line_length = 100
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
+[tool.setuptools.package-dir]
+robot_visualization = "robot_visualization"
+urdfpy = "urdfpy/urdfpy"

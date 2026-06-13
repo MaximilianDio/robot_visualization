@@ -1,4 +1,3 @@
-from typing import List
 from urdfpy import URDF
 import pyvista as pv
 import numpy as np
@@ -89,7 +88,7 @@ class Robot:
             self.mesh_actors[(tm,id)] = (pv_mesh, actor, canonical_points)
             
     def fk(self, q, ee_link_name="CS_6"):
-        """ Generate forward kinemaics for given joint configuration."""
+        """Compute the world-frame pose of a link for a given joint configuration."""
         pose = self.robot.link_fk(q, ee_link_name)
         # transform to base frame
         pose = self.T0 @ pose

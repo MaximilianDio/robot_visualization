@@ -185,9 +185,11 @@ class Robot:
         )
         plotter.add_actor(axes)
 
-    def plot_ee_path(self, path, actor = None, Tgp = np.eye(4), ee_link_name="CS_6", color:str =None, opacity=None, line_width=4, plotter=None):
+    def plot_path(self, points, actor = None, color:str =None, opacity=None, line_width=4, plotter=None):
         """
-        Plot the end-effector path for a given sequence of joint configurations.
+        Plot a polyline through precomputed 3D points, updating `actor` in place
+        when given. Returns the actor unchanged (possibly None) for fewer than
+        two points, since a line needs at least two.
         """
         if plotter is None:
             plotter = self.plotter
@@ -195,16 +197,22 @@ class Robot:
             color = self.mesh_color
         if opacity is None:
             opacity = self.mesh_opacity
-        
-        pos = []
-        for q in path:
-            pose = self.fk(q, ee_link_name) @ Tgp
-            pos.append(pose[:3, 3])
-        
-        mesh = pv.lines_from_points(np.array(pos), close=False)   
-        if actor is None:       
-           actor = plotter.add_mesh(mesh, color=color, line_width=line_width, opacity=opacity)
+
+        points = np.asarray(points)
+        if len(points) < 2:
+            return actor
+
+        mesh = pv.lines_from_points(points, close=False)
+        if actor is None:
+            actor = plotter.add_mesh(mesh, color=color, line_width=line_width, opacity=opacity)
         else:
             actor.mapper.SetInputData(mesh)
 
         return actor
+
+    def plot_ee_path(self, path, actor = None, Tgp = np.eye(4), ee_link_name="CS_6", color:str =None, opacity=None, line_width=4, plotter=None):
+        """
+        Plot the end-effector path for a given sequence of joint configurations.
+        """
+        pos = [(self.fk(q, ee_link_name) @ Tgp)[:3, 3] for q in path]
+        return self.plot_path(pos, actor=actor, color=color, opacity=opacity, line_width=line_width, plotter=plotter)
